@@ -1,0 +1,25 @@
+{
+  "name": "Awesome-Youtube-Music-Player",
+  "version": "1.0.0",
+  "description": "This is awesome youtube music player.<br/>\r Depending [Youtube Music API](https://github.com/NDSLib/youtube-music-api)",
+  "main": "index.js",
+  "scripts": {
+    "tsc": "npx tsc",
+    "dev": "npm run tsc && npx electron ./src/js/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NDSLib/Awesome-Youtube-Music-Player.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MPL",
+  "bugs": {
+    "url": "https://github.com/NDSLib/Awesome-Youtube-Music-Player/issues"
+  },
+  "homepage": "https://github.com/NDSLib/Awesome-Youtube-Music-Player#readme",
+  "devDependencies": {
+    "electron": "^11.3.0",
+    "typescript": "^4.1.5"
+  }
+}
