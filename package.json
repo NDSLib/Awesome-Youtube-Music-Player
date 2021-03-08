@@ -1,0 +1,30 @@
+{
+  "name": "awesome-youtube-music-player",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt-ts -p 3333",
+    "build": "nuxt-ts build",
+    "start": "nuxt-ts start -p 3333",
+    "serve": "http-server ./dist -p 3333",
+    "generate": "nuxt-ts generate",
+    "api::start": "node ../api_server/index.js"
+  },
+  "dependencies": {
+    "@nuxt/typescript-runtime": "^2.0.1",
+    "@nuxtjs/axios": "^5.12.5",
+    "@nuxtjs/proxy": "^2.1.0",
+    "core-js": "^3.8.3",
+    "nuxt": "^2.14.12",
+    "sha1": "^1.1.1",
+    "standard-youtube-music-api": "^1.0.12"
+  },
+  "devDependencies": {
+    "@nuxt/types": "^2.14.12",
+    "@nuxt/typescript-build": "^2.0.4",
+    "@nuxtjs/vuetify": "^1.11.3",
+    "http-server": "^0.12.3",
+    "node-sass": "^5.0.0",
+    "sass-loader": "^10.1.1"
+  }
+}
