@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "tsc": "npx tsc",
-    "dev": "npm run tsc && npx electron ./src/js/main.js"
+    "dev": "npm run tsc && npx electron ./src/js/main.js",
+    "build:win" : "node ./src/build/build-win.js",
+    "build:mac" : "node ./src/build/build-mac.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,7 @@
   "homepage": "https://github.com/NDSLib/Awesome-Youtube-Music-Player#readme",
   "devDependencies": {
     "electron": "^11.3.0",
+    "electron-builder": "^22.9.1",
     "typescript": "^4.1.5"
   }
 }
