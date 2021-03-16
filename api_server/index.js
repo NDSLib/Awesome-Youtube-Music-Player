@@ -43,6 +43,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var Util_1 = require("./Util");
 var Browse_1 = require("standard-youtube-music-api/src/dist/Browse");
+var axios_1 = __importDefault(require("axios"));
+var uuid_1 = require("uuid");
 // const express = require('express');
 var app = express_1.default();
 var bodyParser = require('body-parser');
@@ -50,16 +52,84 @@ var youtube = require('standard-youtube-music-api');
 var getSearch = require("standard-youtube-music-api/src/dist/Search").getSearch;
 var getSearchData = require("standard-youtube-music-api/src/dist/Search").getSearchData;
 var api = new youtube.YoutubeMusicAPI();
+var httpAdapter = require('axios/lib/adapters/http');
 //body-parserの設定
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 var port = 8858; // port番号を指定
 app.use(function (req, res, next) {
-    res.append('Access-Control-Allow-Origin', ['*']);
+    res.append('Access-Control-Allow-Origin', '*');
     // res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    // res.append('Access-Control-Allow-Headers', 'Content-Type');
+    res.append('Access-Control-Allow-Headers', 'Content-Type');
     next();
 });
+app.get('/api/status/', function (req, res) {
+    res.json({ 'status': 'OK' });
+});
+var sourceMap = new Map();
+app.post('/api/get/', function (req, res) {
+    return __awaiter(this, void 0, void 0, function () {
+        var url, id;
+        return __generator(this, function (_a) {
+            url = req.body['url'];
+            if (url === undefined) {
+                res.json({ 'error': 'URL Undefined' });
+                return [2 /*return*/];
+            }
+            id = uuid_1.v4();
+            sourceMap.set(id, url);
+            console.log("URL:" + url);
+            console.log("ID:" + id);
+            res.json({ 'uuid': id });
+            return [2 /*return*/];
+        });
+    });
+});
+app.get('/api/stream/:id', function (req, res) {
+    return __awaiter(this, void 0, void 0, function () {
+        var id;
+        return __generator(this, function (_a) {
+            id = req.params.id;
+            console.log("Stream id:" + id);
+            // @ts-ignore
+            if (sourceMap.has(id)) {
+                //@ts-ignore
+                axios_1.default.get(sourceMap.get(id), { responseType: 'stream', adapter: httpAdapter })
+                    .then(function (response) {
+                    console.log("Stream Type:" + typeof response.data);
+                    var stream = response.data;
+                    // res.pipe(stream)
+                    // @ts-ignore
+                    stream.on('data', function (chunk) {
+                        res.write(chunk);
+                        console.log('OnChunk');
+                    });
+                    stream.on('end', function () {
+                        console.log('OnEnd');
+                        res.end();
+                    });
+                    // console.log(`Header:${JSON.stringify(data['headers']['content-type'])}`)
+                    // res.append('Content-Type',data['headers']['content-type'])
+                    // res.send(data['data'])
+                });
+                // console.log(`Data:${data['data']}`)
+                // res.chunkedEncoding = true
+                // res.shouldKeepAlive = true
+                // res.redirect(sourceMap.get(id))
+            }
+            else {
+                res.json({ 'error': 'not registered!' });
+            }
+            return [2 /*return*/];
+        });
+    });
+});
+// app.get('/api/get/', async function (req, res) {
+//     let url = req.body['url']
+//     @ts-ignore
+// let data = await axios.get(url)
+// res.send(data)
+// });
 app.get('/api/browse/', function (req, res) {
     return __awaiter(this, void 0, void 0, function () {
         var data, json;

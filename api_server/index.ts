@@ -4,6 +4,9 @@ import {SearchEntry} from "standard-youtube-music-api/src/dist/Search";
 import express from 'express'
 import {safeString} from "./Util";
 import {BROWSE_DIST, getBrowse} from "standard-youtube-music-api/src/dist/Browse";
+import axios from "axios";
+import {v4 as uuidv4} from 'uuid'
+import {FormatsJSON} from "standard-youtube-music-api/src/dist/JSONCollection";
 
 // const express = require('express');
 const app = express();
@@ -12,6 +15,7 @@ const youtube = require('standard-youtube-music-api')
 const {getSearch} = require("standard-youtube-music-api/src/dist/Search");
 const {getSearchData} = require("standard-youtube-music-api/src/dist/Search");
 const api = new youtube.YoutubeMusicAPI()
+const httpAdapter = require('axios/lib/adapters/http');
 
 //body-parserの設定
 app.use(bodyParser.urlencoded({extended: true}));
@@ -20,11 +24,73 @@ app.use(bodyParser.json());
 const port = 8858; // port番号を指定
 
 app.use((req, res, next) => {
-    res.append('Access-Control-Allow-Origin', ['*']);
+    res.append('Access-Control-Allow-Origin', '*');
     // res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    // res.append('Access-Control-Allow-Headers', 'Content-Type');
+    res.append('Access-Control-Allow-Headers', 'Content-Type');
     next();
 });
+
+app.get('/api/status/',function (req,res){
+    res.json({'status':'OK'})
+})
+
+let sourceMap = new Map<string, string>()
+
+app.post('/api/get/', async function (req, res) {
+    let url = req.body['url']
+    if(url===undefined){
+        res.json({'error':'URL Undefined'})
+        return
+    }
+    let id = uuidv4();
+    sourceMap.set(id, url)
+    console.log(`URL:${url}`)
+    console.log(`ID:${id}`)
+    res.json({'uuid': id})
+});
+
+app.get('/api/stream/:id', async function (req, res) {
+    let id = req.params.id
+    console.log(`Stream id:${id}`)
+    // @ts-ignore
+    if (sourceMap.has(id)) {
+        //@ts-ignore
+        axios.get(sourceMap.get(id), {responseType: 'stream', adapter: httpAdapter})
+            .then((response) => {
+                console.log(`Stream Type:${typeof response.data}`)
+                const stream = response.data
+                // res.pipe(stream)
+                // @ts-ignore
+                stream.on('data',(chunk)=>{
+                    res.write(chunk)
+                    console.log('OnChunk')
+                })
+
+                stream.on('end',()=>{
+                    console.log('OnEnd')
+                    res.end()
+                })
+
+                // console.log(`Header:${JSON.stringify(data['headers']['content-type'])}`)
+                // res.append('Content-Type',data['headers']['content-type'])
+                // res.send(data['data'])
+            })
+        // console.log(`Data:${data['data']}`)
+        // res.chunkedEncoding = true
+        // res.shouldKeepAlive = true
+
+        // res.redirect(sourceMap.get(id))
+    } else {
+        res.json({'error': 'not registered!'})
+    }
+});
+
+// app.get('/api/get/', async function (req, res) {
+//     let url = req.body['url']
+//     @ts-ignore
+// let data = await axios.get(url)
+// res.send(data)
+// });
 
 app.get('/api/browse/', async function (req, res) {
     let data = await getBrowse(api, BROWSE_DIST.home)
@@ -33,12 +99,12 @@ app.get('/api/browse/', async function (req, res) {
         let c = {'Title': '', 'Contents': []}
         c['Title'] = it.getTitle()
         it.getContents().forEach((i) => {
-            let j = {'Title': '', 'SubTitle': '', 'VideoID': '', 'PlayListID': '','Thumbnails':[]}
+            let j = {'Title': '', 'SubTitle': '', 'VideoID': '', 'PlayListID': '', 'Thumbnails': []}
             j['Title'] = i.getTitle()
             j['SubTitle'] = i.getSubTitle()
             j['VideoID'] = i.getVideoID()
             j['PlayListID'] = i.getPlayListID()
-            i.getThumbnails().forEach((s)=>{
+            i.getThumbnails().forEach((s) => {
                 // @ts-ignore
                 j['Thumbnails'].push(s)
             })
@@ -56,7 +122,7 @@ app.get('/api/playlist/:id', async function (req, res) {
 });
 
 app.get('/api/format/:id', async function (req, res) {
-    let format = (await api.getFormats(req.params.id))
+    let format:FormatsJSON = (await api.getFormats(req.params.id))
     let url = format.getFormatURL()
     res.json({'url': safeString(url)});
 });
