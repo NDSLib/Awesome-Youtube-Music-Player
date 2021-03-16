@@ -1,18 +1,32 @@
 <template>
   <div>
     <v-row justify="center" align="center">
-      <v-col class="videos" v-for="video in Videos" cols="12" sm="8" md="6">
+      <v-col class="videos" v-for="video in Videos" cols="12" lg="8" md="6">
         {{ video }}
       </v-col>
     </v-row>
     <v-row justify="center" align="center">
       <v-text-field label="VideoName" v-model="search">
       </v-text-field>
-      <v-btn color="blue" @click="search_()">SEARCH</v-btn>
+      <v-btn color="blue" @click="search_()" :loading="loading">SEARCH</v-btn>
     </v-row>
     <v-row>
-      <v-col v-for="video in result" cols="12" sm="8" md="6">
-        {{ video }}
+      <v-col v-for="video in result" cols="12" lg="4" sm="8" md="6">
+        <v-card>
+          <NuxtLink :to="'/play?VideoID='+video['ID']">
+            <v-img
+              :src="video['Thumbnail']"
+              :alt="`${video['Title']}のサムネイル`"
+              height="300"
+            />
+          </NuxtLink>
+          <v-card-title style="overflow: hidden ;">
+            {{ video['Title'] }}
+          </v-card-title>
+          <v-card-text>
+            {{ video['SubTitle'] }}
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
   </div>
@@ -37,8 +51,9 @@ export default {
   data() {
     return {
       Videos: [],
-      search: "",
-      result: []
+      search: "マオ",
+      result: [],
+      loading : false
     }
   },
   methods: {
@@ -48,19 +63,24 @@ export default {
     },
     async search_() {
       //@ts-ignore
+      this.$data.result = []
+      //@ts-ignore
+      this.$data.loading = true
+      //@ts-ignore
       let res = await this.$axios.get('http://localhost:8858/api/search/' + this.$data.search)
-      let data: Array<SearchEntry> = parseSearchData(res['data'])
-      data
-        .forEach((it) => {
-          it.getItems().filter((i) => {
-            i.isVideo()
-          }).forEach((i) => {
-            //@ts-ignore
-            this.$data.result.push(`${i.getTitle()}:${i.getVideoID()}`)
-          })
+      //@ts-ignore
+      res['data']['Entries'].forEach((e) => {
+        //@ts-ignore
+        e['Videos'].forEach((it) => {
+          //@ts-ignore
+          this.$data.result.push({'Title': it['title'],'SubTitle':it['subTitle'], 'ID': it['id'], 'Thumbnail': it['thumbnail'][0]['url']})
         })
+      })
+
+      //@ts-ignore
+      this.$data.loading = false
     }
-  },
+  }/*,
   async fetch() {
     //@ts-ignore
     let res = await this.$axios.get('http://localhost:8858/api/browse/')
@@ -69,6 +89,6 @@ export default {
       //@ts-ignore
       this.Videos.push(it.getTitle())
     })
-  }
+  }*/
 }
 </script>

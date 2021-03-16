@@ -92,6 +92,11 @@ export default {
           icon: 'icon/people.svg',
           title: 'PlayList',
           to: '/playlist'
+        },
+        {
+          icon: 'icon/people.svg',
+          title: 'Play',
+          to: '/play'
         }
       ],
       miniVariant: false,

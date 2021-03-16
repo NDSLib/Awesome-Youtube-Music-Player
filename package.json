@@ -8,7 +8,7 @@
     "start": "nuxt-ts start -p 3333",
     "serve": "http-server ./dist -p 3333",
     "generate": "nuxt-ts generate",
-    "api::start": "node ../api_server/index.js"
+    "api::start": "cd ../api_server && npm run run"
   },
   "dependencies": {
     "@nuxt/typescript-runtime": "^2.0.1",
